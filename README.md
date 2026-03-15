@@ -44,6 +44,7 @@ mindmap
 |------|------|------|
 | Day 1 | 什么是 AI Agent？ | AI Agent 核心概念与架构 |
 | Day 2 | MCP 协议 | Model Context Protocol 深度解析 |
+| Day 3 | Claude Code | Anthropic AI 编程助手完全指南 |
 
 ## 文章特点
 
