@@ -101,23 +101,61 @@ flowchart TB
 
 ### 2. 调用工具
 
-```python
-# MCP 工具调用示例 - Python SDK
-from mcp import Client
+```typescript
+// MCP 工具调用示例 - TypeScript SDK
+import { Client } from '@modelcontextprotocol/sdk-client';
 
-# 连接 MCP 服务器
-client = Client("mcp-server-filesystem")
+// 连接 MCP 服务器
+const client = new Client({
+  transport: 'stdio',
+  command: 'npx',
+  args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp']
+});
 
-# 列出可用工具
-tools = client.list_tools()
-print(tools)
-# 输出: ['read_file', 'write_file', 'list_directory', ...]
+// 列出可用工具
+const tools = await client.listTools();
+console.log(tools);
+// 输出: ['read_file', 'write_file', 'list_directory', ...]
 
-# 调用工具
-result = client.call_tool("read_file", {
-    "path": "/path/to/file.txt"
-})
-print(result)
+// 调用工具
+const result = await client.callTool('read_file', {
+  path: '/path/to/file.txt'
+});
+console.log(result);
+```
+
+```javascript
+// JavaScript 示例：MCP 客户端基础使用
+import { Client } from '@modelcontextprotocol/sdk-client/index.js';
+
+// 创建 MCP 客户端
+const mcpClient = new Client({
+  name: 'my-mcp-client',
+  version: '1.0.0'
+});
+
+// 连接本地 MCP 服务器
+await mcpClient.connect({
+  transport: 'stdio',
+  command: 'npx',
+  args: ['-y', '@modelcontextprotocol/server-filesystem', './']
+});
+
+// 列出可用资源
+const resources = await mcpClient.listResources();
+console.log('可用资源:', resources);
+
+// 调用工具
+async function readFile(path) {
+  const result = await mcpClient.callTool({
+    name: 'read_file',
+    arguments: { path }
+  });
+  return result;
+}
+
+// 使用示例
+const content = await readFile('./README.md');
 ```
 
 ### 3. 自动化工作流
@@ -238,7 +276,7 @@ npm install -g @modelcontextprotocol/server-mysql
 
 ## 实战：构建自己的 MCP 服务器
 
-### 1. 使用 TypeScript SDK
+### 1. 使用 TypeScript SDK（推荐）
 
 ```typescript
 // my-mcp-server.ts
@@ -266,15 +304,27 @@ server.addTool({
   },
   handler: async ({ city }) => {
     // 调用天气 API
-    const response = await fetch(
-      `https://api.weather.com/v3/wx/conditions?city=${city}`
-    );
-    const data = await response.json();
-    
+    const weatherData: Record<string, { temp: number; condition: string }> = {
+      '北京': { temp: 15, condition: '晴' },
+      '上海': { temp: 18, condition: '多云' },
+      '广州': { temp: 24, condition: '雨' },
+      '深圳': { temp: 26, condition: '晴' }
+    };
+
+    const data = weatherData[city];
+    if (!data) {
+      return {
+        content: [{
+          type: "text",
+          text: `不支持查询 ${city} 的天气`
+        }]
+      };
+    }
+
     return {
       content: [{
         type: "text",
-        text: JSON.stringify(data)
+        text: `${city}今天${data.condition}，温度${data.temp}°C`
       }]
     };
   }
@@ -297,7 +347,100 @@ server.addResource({
 server.run();
 ```
 
-### 2. 使用 Python SDK
+### 2. 使用 JavaScript/Node.js
+
+```javascript
+// weather-server.js (纯 JavaScript 版本)
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolResult, ListToolsResult } from '@modelcontextprotocol-sdk/types.js';
+
+const server = new Server(
+  { name: 'weather-server', version: '1.0.0' },
+  { capabilities: { tools: {} } }
+);
+
+// 天气数据
+const weatherData = {
+  '北京': { temp: 15, condition: '晴', humidity: 40 },
+  '上海': { temp: 18, condition: '多云', humidity: 65 },
+  '广州': { temp: 24, condition: '雨', humidity: 80 },
+  '深圳': { temp: 26, condition: '晴', humidity: 70 }
+};
+
+// 列出可用工具
+server.setRequestHandler('tools/list', async (): Promise<ListToolsResult> => {
+  return {
+    tools: [
+      {
+        name: 'get_weather',
+        description: '获取指定城市的天气信息',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            city: {
+              type: 'string',
+              description: '城市名称'
+            }
+          },
+          required: ['city']
+        }
+      },
+      {
+        name: 'list_cities',
+        description: '列出所有支持的城市',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      }
+    ]
+  };
+});
+
+// 处理工具调用
+server.setRequestHandler('tools/call', async (request): Promise<CallToolResult> => {
+  const { name, arguments: args } = request.params;
+
+  if (name === 'get_weather') {
+    const { city } = args;
+    const data = weatherData[city];
+
+    if (!data) {
+      return {
+        content: [{
+          type: 'text',
+          text: `不支持查询 ${city} 的天气`
+        }]
+      };
+    }
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({ city, ...data })
+      }]
+    };
+  }
+
+  if (name === 'list_cities') {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(Object.keys(weatherData))
+      }]
+    };
+  }
+
+  throw new Error(`Unknown tool: ${name}`);
+});
+
+// 启动服务器
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+### 3. 使用 Python SDK
 
 ```python
 # weather_server.py
