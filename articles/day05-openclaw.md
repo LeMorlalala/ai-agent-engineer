@@ -610,9 +610,9 @@ settings:
 
 ## 明日预告
 
-**Day 6: Multi-Agent 系统 - 多个 AI Agent 协同工作**
+**Day 6: Function Calling - AI Agent 的工具调用核心**
 
-明天我们将学习如何构建多 Agent 协作系统，让多个 AI Agent 协同完成复杂任务！
+明天我们将深入学习 Function Calling，掌握 AI Agent 与外部世界交互的核心能力！
 
 ---
 

@@ -287,9 +287,9 @@ Claude Code 可以帮助你：
 
 ## 明日预告
 
-**Day 4: Cursor - AI 增强的 IDE 终极体验**
+**Day 4: LangGraph - 生产级 AI Agent 的构建框架**
 
-明天我们将深入了解 Cursor，体验 AI 与 IDE 的完美融合。
+明天我们将深入了解 LangGraph，学习如何构建可靠、可观测、可部署的 AI Agent！
 
 ---
 

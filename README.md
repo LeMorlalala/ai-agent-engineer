@@ -45,6 +45,9 @@ mindmap
 | Day 1 | 什么是 AI Agent？ | AI Agent 核心概念与架构 |
 | Day 2 | MCP 协议 | Model Context Protocol 深度解析 |
 | Day 3 | Claude Code | Anthropic AI 编程助手完全指南 |
+| Day 4 | LangGraph | 生产级 AI Agent 构建框架 |
+| Day 5 | OpenClaw | 构建你的专属 AI 助手 |
+| Day 6 | Function Calling | AI Agent 的工具调用核心 |
 
 ## 文章特点
 
