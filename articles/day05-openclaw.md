@@ -67,7 +67,7 @@ sequenceDiagram
     participant Gateway as Gateway
     participant Skill as Skill
     participant LLM as 大语言模型
-    participant Tool as 工具 
+    participant Tool as 工具 |
     
     User->>Channel: 发送消息
     Channel->>Gateway: 转发消息
@@ -107,26 +107,20 @@ flowchart LR
 ### 1. 安装 OpenClaw
 
 ```bash
-# 使用 npm 安装（推荐）
-npm install -g openclaw@latest
+# 使用 npm 安装
+npm install -g openclaw-cn
 
 # 或使用 npx
 npx openclaw-cn
 ```
 
-### 2. 初始化项目
+### 2. 创建项目
 
 ```bash
 # 初始化新项目
 openclaw init my-agent
 
-# 运行向导
-openclaw onboard --install-daemon
-```
-
-### 3. 目录结构
-
-```
+# 目录结构
 my-agent/
 ├── skills/
 │   └── weather/
@@ -137,7 +131,7 @@ my-agent/
 └── README.md
 ```
 
-### 4. 定义 Skill
+### 3. 定义 Skill
 
 ```javascript
 // skills/weather/index.js
@@ -148,16 +142,10 @@ export default {
     // Skill 描述
     description: "查询城市天气信息",
     
-    // 技能元数据
-    version: "1.0.0",
-    author: "Your Name",
-    
     // 可用工具
     tools: {
         // 定义天气查询工具
-        get_weather: async ({ city }, context) => {
-            // context 包含 llm, memory, config 等
-            
+        get_weather: async ({ city }) => {
             // 调用天气 API（这里使用模拟数据）
             const weatherData = {
                 "北京": { temp: 15, condition: "晴", humidity: 40 },
@@ -190,7 +178,7 @@ export default {
     
     // 处理用户请求
     async handle(context) {
-        const { message, params, llm, memory } = context;
+        const { message, params } = context;
         
         // 提取城市参数
         const city = params.city || extractCityFromMessage(message);
@@ -219,23 +207,20 @@ export default {
 // 辅助函数：根据天气状况给出建议
 function getAdvice(condition, temp) {
     if (condition === "雨") {
-        return "记得带伞哦！☔";
+        return "记得带伞哦！";
     } else if (condition === "晴") {
-        if (temp > 25) return "适合户外活动，注意防晒！🧴";
-        return "适合户外活动！🌤️";
-    } else if (condition === "多云") {
-        return "天气不错，出门走走！🚶";
-    } else if (temp > 30) {
-        return "天气炎热，注意防暑！🥵";
+        return "适合户外活动，注意防晒。";
+    } else if (temp > 25) {
+        return "天气较热，注意补水。";
     } else if (temp < 10) {
-        return "天气较凉，注意保暖！🧥";
+        return "天气较凉，注意保暖。";
     }
     return "";
 }
 
 // 从消息中提取城市
 function extractCityFromMessage(message) {
-    const cities = ["北京", "上海", "广州", "深圳", "杭州", "成都", "武汉", "南京"];
+    const cities = ["北京", "上海", "广州", "深圳", "杭州", "成都"];
     for (const city of cities) {
         if (message.includes(city)) {
             return city;
@@ -245,7 +230,7 @@ function extractCityFromMessage(message) {
 }
 ```
 
-### 5. SKILL.md 文档
+### 4. SKILL.md 文档
 
 ```markdown
 # Weather Skill
@@ -253,46 +238,21 @@ function extractCityFromMessage(message) {
 ## 描述
 查询城市天气信息
 
-## 版本
-1.0.0
-
 ## 工具
 - `get_weather(city: string)` - 获取城市天气
-
-## 参数
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| city | string | 是 | 城市名称 |
 
 ## 使用示例
 - "北京天气怎么样"
 - "上海今天天气"
 - "查询广州天气"
-
-## 返回数据
-```json
-{
-  "success": true,
-  "city": "北京",
-  "temp": 15,
-  "condition": "晴",
-  "humidity": 40,
-  "advice": "适合户外活动！"
-}
-```
 ```
 
-### 6. 配置 Skill
+### 5. 配置 Skill
 
 ```yaml
 # config.yaml
 skills:
   - path: ./skills/weather
-    enabled: true
-    
-# 或使用 glob 模式
-skills:
-  - path: ./skills/*
     enabled: true
 ```
 
@@ -327,36 +287,24 @@ export default {
     description: "记住用户信息",
     
     async handle(context) {
-        const { message, memory, llm } = context;
+        const { message, memory } = context;
         
         // 读取用户偏好
         const preferences = await memory.get("preferences");
-        const lastCity = await memory.get("last_city");
         
         // 存储用户信息
-        await memory.set("last_city", "北京");
+        await memory.set("last_city", message.city);
         
         // 搜索相关记忆
         const related = await memory.search("喜欢的餐厅");
         
-        // 存储长期记忆
-        await memory.set("user_name", "小明", { ttl: 86400 * 30 }); // 30天
-        
         return { 
-            message: `好的，我已经记住您的信息了！上次您查询的是 ${lastCity} 的天气。`,
+            message: "我已经记住您的偏好了！",
             memory: { preferences, related }
         };
     }
 };
 ```
-
-### 记忆类型
-
-| 类型 | 说明 | 用途 |
-|------|------|------|
-| **Session** | 会话级记忆 | 对话历史 |
-| **Short-term** | 短期记忆 | 当天上下文 |
-| **Long-term** | 长期记忆 | 用户偏好、知识 |
 
 ## 多渠道支持
 
@@ -397,14 +345,14 @@ channels:
     bot_token: "${TELEGRAM_BOT_TOKEN}"
 ```
 
-### 配置 Discord
+### 配置 Telegram
 
 ```yaml
 # config.yaml
 channels:
-  discord:
+  telegram:
     enabled: true
-    bot_token: "${DISCORD_BOT_TOKEN}"
+    bot_token: "your-bot-token"
     
     # 可选：配置命令
     commands:
@@ -412,16 +360,6 @@ channels:
         description: 开始使用
       - command: /help
         description: 帮助信息
-```
-
-### 启动 Gateway
-
-```bash
-# 启动 Gateway
-openclaw gateway --port 18789
-
-# 或使用默认配置启动
-openclaw gateway
 ```
 
 ## OpenClaw 的工具生态
@@ -440,11 +378,6 @@ const content = await context.tools.file.read({
 await context.tools.file.write({
     path: "./output.txt",
     content: "Hello World"
-});
-
-// 列出目录
-const files = await context.tools.file.list({
-    path: "./skills"
 });
 ```
 
@@ -481,12 +414,6 @@ await context.tools.browser({
 const screenshot = await context.tools.browser({
     action: "screenshot"
 });
-
-// 执行 JavaScript
-await context.tools.browser({
-    action: "evaluate",
-    script: "document.title"
-});
 ```
 
 ## 构建更复杂的 Agent
@@ -500,10 +427,10 @@ export default {
     description: "智能任务规划助手",
     
     async handle(context) {
-        const { message, tools, llm } = context;
+        const { message, tools } = context;
         
         // 使用 LLM 分析任务
-        const plan = await llm.analyze(message, {
+        const plan = await context.llm.analyze(message, {
             system: `你是一个任务规划助手。
             将用户请求分解为具体的执行步骤。
             每个步骤需要指定：动作、工具、参数`
@@ -512,27 +439,17 @@ export default {
         // 执行计划
         const results = [];
         for (const step of plan.steps) {
-            const tool = tools[step.tool];
-            if (!tool) {
-                results.push({ step: step.name, error: `Tool ${step.tool} not found` });
-                continue;
-            }
+            const result = await tools[step.tool](step.params);
+            results.push({ step: step.name, result });
             
-            try {
-                const result = await tool(step.params);
-                results.push({ step: step.name, result });
-                
-                // 检查是否需要调整
-                if (result.needs_adjustment) {
-                    plan = await llm.adjust(plan, result);
-                }
-            } catch (error) {
-                results.push({ step: step.name, error: error.message });
+            // 检查是否需要调整
+            if (result.needs_adjustment) {
+                plan = await context.llm.adjust(plan, result);
             }
         }
         
         // 生成最终回复
-        return await llm.summarize(message, results);
+        return await context.llm.summarize(message, results);
     }
 };
 ```
@@ -553,7 +470,7 @@ export default {
     },
     
     async handle(context) {
-        const { message, state, llm } = context;
+        const { message, state } = context;
         
         // 检查是否等待特定输入
         if (state.waiting_for) {
@@ -561,9 +478,7 @@ export default {
         }
         
         // 理解用户意图
-        const intent = await llm.classify(message, {
-            categories: ['weather_query', 'news_query', 'general', 'help']
-        });
+        const intent = await context.llm.classify(message);
         
         // 根据意图处理
         switch (intent) {
@@ -571,8 +486,6 @@ export default {
                 return await this.handleWeather(context);
             case "news_query":
                 return await this.handleNews(context);
-            case "help":
-                return { message: "我可以帮您查询天气、新闻等信息，请问有什么需要？" };
             case "general":
             default:
                 return await this.handleGeneral(context);
@@ -580,8 +493,7 @@ export default {
     },
     
     async handleWeather(context) {
-        const { message } = context;
-        const city = extractCity(message);
+        const city = extractCity(context.message);
         
         if (!city) {
             // 需要更多信息
@@ -597,24 +509,10 @@ export default {
         
         return {
             message: formatWeather(weather),
-            state: { ...context.state, waiting_for: null, last_city: city }
+            state: { ...context.state, waiting_for: null }
         };
     }
 };
-
-// 提取城市
-function extractCity(message) {
-    const cities = ["北京", "上海", "广州", "深圳"];
-    return cities.find(city => message.includes(city));
-}
-
-// 格式化天气回复
-function formatWeather(weather) {
-    if (!weather.success) {
-        return weather.message;
-    }
-    return `${weather.city}今天${weather.condition}，${weather.temp}度！${weather.advice}`;
-}
 ```
 
 ## OpenClaw 与其他框架对比
@@ -671,8 +569,6 @@ export default {
     name: "safe-skill",
     
     async handle(context) {
-        const { message, llm } = context;
-        
         try {
             // 业务逻辑
             const result = await riskyOperation();
@@ -712,26 +608,11 @@ settings:
   default_language: zh-CN
 ```
 
-## 下一步学习
+## 明日预告
 
-恭喜你完成了 AI Agent 入门系列！
+**Day 6: Multi-Agent 系统 - 多个 AI Agent 协同工作**
 
-```mermaid
-mindmap
-  root((继续学习))
-    深入框架
-      LangGraph 高级用法
-      Multi-Agent 系统
-      Agent 内存管理
-    实战项目
-      个人 AI 助手
-      自动化工作流
-      代码审查 Agent
-    部署运维
-      Docker 部署
-      监控与日志
-      安全最佳实践
-```
+明天我们将学习如何构建多 Agent 协作系统，让多个 AI Agent 协同完成复杂任务！
 
 ---
 
