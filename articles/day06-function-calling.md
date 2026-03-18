@@ -667,7 +667,7 @@ Function Calling 是 AI Agent 的核心能力，它让 LLM 从"只会说"变成"
 - 关键是理解如何设计好的工具 schema
 - 多实践，从简单工具开始逐步增加复杂度
 
-下一篇文章我们将深入探讨 **Multi-Agent 协作系统**，看看如何让多个 Agent 协同工作来解决复杂问题。
+下一篇文章我们将深入探讨 **RAG (Retrieval-Augmented Generation)**，给 AI Agent 装上知识库，让它拥有"长期记忆"和"专业知识"。
 
 ---
 
