@@ -2,6 +2,14 @@
 
 > 让 AI Agent 拥有"长期记忆"和"专业知识"
 
+## 昨日回顾
+
+昨天我们学习了 [Day 6: Function Calling](./day06-function-calling.md)，掌握了 AI Agent 与外部世界交互的核心能力。
+
+## 明日预告
+
+明天我们将探讨 **Agent 内存与状态管理**，包括：短期记忆（对话上下文）、长期记忆（向量数据库）、持久化存储方案，以及如何让 Agent "记住"用户偏好和历史交互。敬请期待！
+
 ## 什么是 RAG？
 
 **RAG (Retrieval-Augmented Generation，检索增强生成)** 是一种让 AI 模型在生成回答时能够访问外部知识库的技术。简单来说：
