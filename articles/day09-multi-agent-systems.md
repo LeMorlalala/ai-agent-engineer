@@ -120,7 +120,7 @@ flowchart LR
     Generator[生成 Agent] -->|输出| Validator[验证 Agent]
     Validator -->|反馈| Generator
     
-    loop 迭代优化
+    loop
         Generator --> Validator
         Validator --> Generator
     end
