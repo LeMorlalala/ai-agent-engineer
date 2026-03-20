@@ -117,13 +117,9 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Generator[生成 Agent] -->|输出| Validator[验证 Agent]
-    Validator -->|反馈| Generator
-    
-    loop
-        Generator --> Validator
-        Validator --> Generator
-    end
+    G[生成 Agent] -->|输出| V[验证 Agent]
+    V -->|反馈| G
+    V -->|通过| Done[完成]
 ```
 
 **适用场景**：需要自我纠错的任务，如代码生成与测试、写作与编辑。
