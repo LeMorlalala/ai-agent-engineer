@@ -117,13 +117,9 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Generator[生成 Agent] -->|输出| Validator[验证 Agent]
-    Validator -->|反馈| Generator
-    
-    loop 迭代优化
-        Generator --> Validator
-        Validator --> Generator
-    end
+    G[生成 Agent] -->|输出| V[验证 Agent]
+    V -->|反馈| G
+    V -->|通过| Done[完成]
 ```
 
 **适用场景**：需要自我纠错的任务，如代码生成与测试、写作与编辑。
@@ -258,20 +254,38 @@ print(result)
 
 ### 层级式执行示例
 
-对于更复杂的任务，可以使用层级式 Process：
+对于更复杂的任务，可以使用层级式 Process。CrewAI 支持两种方式：
+
+**方式一：使用 manager_llm（推荐）**
 
 ```python
-# 团队领导 + 执行者的层级结构
+# 只需指定 manager 使用的 LLM，CrewAI 自动创建 manager
 crew = Crew(
-    agents=[
-        manager_agent,    # 负责分配任务
-        researcher,      # 执行研究
-        writer,          # 执行写作
-        editor           # 执行审核
-    ],
-    tasks=[...],
+    agents=[researcher, writer, editor],
+    tasks=[research_task, write_task, edit_task],
     process=Process.hierarchical,  # 层级执行
-    manager_agent=manager_agent,    # 指定管理者
+    manager_llm="gpt-4o",           # 指定 manager 使用的 LLM
+    verbose=True
+)
+```
+
+**方式二：自定义 manager agent**
+
+```python
+# 先定义一个 manager agent
+manager = Agent(
+    role="Project Manager",
+    goal="高效管理团队，确保高质量完成任务",
+    backstory="你是一位经验丰富的项目经理，擅长 overseeing 复杂项目并指导团队成功。",
+    allow_delegation=True,  # 允许委托任务
+)
+
+# 使用自定义 manager
+crew = Crew(
+    agents=[manager, researcher, writer, editor],
+    tasks=[research_task, write_task, edit_task],
+    process=Process.hierarchical,
+    manager_agent=manager,  # 传入自定义 manager agent
     verbose=True
 )
 ```
